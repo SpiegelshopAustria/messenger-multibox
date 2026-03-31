@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { AccountItem }     from './AccountItem'
-import { AddAccountModal } from './AddAccountModal'
-import { useAccountStore } from '../store/accountStore'
+import { AccountItem }      from './AccountItem'
+import { AddAccountModal }  from './AddAccountModal'
+import { EditAccountModal } from './EditAccountModal'
+import { useAccountStore, Account } from '../store/accountStore'
 
 // Typen fuer window.electronAPI (vom Preload bereitgestellt)
 declare global {
@@ -10,7 +11,8 @@ declare global {
       addAccount:       (a: { id: string; name: string; color: string; serviceId: string; url: string }) => Promise<{ success: boolean }>
       removeAccount:    (id: string) => Promise<{ success: boolean; switchTo?: string | null }>
       switchAccount:    (id: string) => Promise<{ success: boolean }>
-      getAccounts:      () => Promise<Array<{ id: string; name: string; color: string; order: number; serviceId: string; url: string }>>
+      updateAccount:    (id: string, changes: Record<string, unknown>) => Promise<{ success: boolean }>
+      getAccounts:      () => Promise<Array<{ id: string; name: string; color: string; order: number; serviceId: string; url: string; emoji?: string }>>
       getServices:      () => Promise<Array<{ id: string; name: string; url: string; color: string; emoji: string }>>
       onBadgeUpdate:    (cb: (d: { id: string; count: number }) => void) => () => void
       onSwitchFromTray: (cb: (d: { id: string }) => void) => () => void
@@ -24,21 +26,11 @@ declare global {
   }
 }
 
-const SERVICE_EMOJIS: Record<string, string> = {
-  'whatsapp':          '\u{1F4AC}',
-  'whatsapp-business': '\u{1F3E2}',
-  'telegram':          '\u{2708}\u{FE0F}',
-  'signal':            '\u{1F512}',
-  'messenger':         '\u{26A1}',
-  'discord':           '\u{1F3AE}',
-  'slack':             '\u{1F537}',
-  'teams':             '\u{1F535}',
-}
-
 export function Sidebar() {
-  const { accounts, activeId, badges, setActiveId, addAccount, removeAccount } =
+  const { accounts, activeId, badges, setActiveId, addAccount, removeAccount, updateAccount } =
     useAccountStore()
   const [showModal, setShowModal] = useState(false)
+  const [editAccount, setEditAccount] = useState<Account | null>(null)
   const isMac = window.electronAPI?.platform === 'darwin'
 
   const handleSwitch = async (id: string) => {
@@ -60,6 +52,12 @@ export function Sidebar() {
     removeAccount(id)
     if (result?.switchTo) setActiveId(result.switchTo)
     else if (result?.switchTo === null) setActiveId(null)
+  }
+
+  const handleEdit = async (id: string, name: string, color: string, emoji: string) => {
+    const changes = { name, color, emoji }
+    await window.electronAPI.updateAccount(id, changes)
+    updateAccount(id, changes)
   }
 
   return (
@@ -94,9 +92,9 @@ export function Sidebar() {
                 {...account}
                 isActive={activeId === account.id}
                 badge={badges[account.id] ?? 0}
-                serviceEmoji={SERVICE_EMOJIS[account.serviceId]}
                 onClick={() => handleSwitch(account.id)}
                 onRemove={() => handleRemove(account.id)}
+                onEdit={() => setEditAccount(account)}
               />
             ))}
         </div>
@@ -122,6 +120,14 @@ export function Sidebar() {
         <AddAccountModal
           onAdd={handleAdd}
           onClose={() => setShowModal(false)}
+        />
+      )}
+
+      {editAccount && (
+        <EditAccountModal
+          account={editAccount}
+          onSave={handleEdit}
+          onClose={() => setEditAccount(null)}
         />
       )}
     </>

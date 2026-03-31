@@ -1,7 +1,7 @@
 # PROGRESS - whatsapp-multibox
 
 ## Letzter Schritt
-2026-03-31 - PROMPT-06 Fixes + Multi-Service abgeschlossen.
+2026-03-31 - PROMPT-07 Kontextmenue + Edit Modal abgeschlossen.
 
 ## Status
 | Feature | Datei | Status | Datum |
@@ -12,6 +12,7 @@
 | Tray | PROMPT-04 | DONE | 2026-03-31 |
 | Build | PROMPT-05 | DONE | 2026-03-31 |
 | Fixes + Multi-Service + Window Mgmt | PROMPT-06 | DONE | 2026-03-31 |
+| Kontextmenue + Edit + Emoji | PROMPT-07 | DONE | 2026-03-31 |
 
 ## Build Output
 | Datei | Plattform | Typ |
@@ -35,3 +36,4 @@
 2026-03-31 - PROMPT-04 fertig: trayManager vollstaendig, index.ts finalisiert.
 2026-03-31 - PROMPT-05 fertig: Icons generiert (sharp+png2icons), electron-builder output-Pfad fix (out/), Windows Build erfolgreich (Setup+Portable).
 2026-03-31 - PROMPT-06 fertig: Multi-Service Support (8 Messenger), TitleBar mit Window Controls, Service-Auswahl Modal, BrowserView Offset fix, Account Interface erweitert (serviceId, url).
+2026-03-31 - PROMPT-07 fertig: ContextMenu, EditAccountModal mit Emoji-Galerie, account:update IPC, AccountItem mit Rechtsklick-Menue.

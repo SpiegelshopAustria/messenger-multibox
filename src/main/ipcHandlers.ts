@@ -46,6 +46,13 @@ export function registerIpcHandlers(win: BrowserWindow): void {
     return { success: true, switchTo: null }
   })
 
+  ipcMain.handle('account:update', (_event, { id, changes }: { id: string; changes: Partial<Account> }) => {
+    let accounts = loadAccounts()
+    accounts = accounts.map(a => a.id === id ? { ...a, ...changes } : a)
+    saveAccounts(accounts)
+    return { success: true }
+  })
+
   ipcMain.handle('account:switch', (_event, { id }: { id: string }) => {
     showAccount(win, id)
     return { success: true }

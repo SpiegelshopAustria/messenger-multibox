@@ -7,6 +7,7 @@ export type Account = {
   order: number
   serviceId: string
   url: string
+  emoji?: string
 }
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -27,6 +28,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('account:switch-from-tray', handler)
   },
 
+  updateAccount: (id: string, changes: Record<string, unknown>) =>
+    ipcRenderer.invoke('account:update', { id, changes }),
   getServices: () => ipcRenderer.invoke('services:list'),
 
   minimizeWindow:  () => ipcRenderer.send('window:minimize'),

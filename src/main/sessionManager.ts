@@ -14,6 +14,7 @@ export interface Account {
   order: number
   serviceId: string
   url: string
+  emoji?: string
 }
 
 const views = new Map<string, WebContentsView>()

@@ -7,6 +7,7 @@ export interface Account {
   order: number
   serviceId: string
   url: string
+  emoji?: string
 }
 
 interface AccountStore {
@@ -18,6 +19,7 @@ interface AccountStore {
   setBadge:     (id: string, count: number) => void
   addAccount:   (account: Account) => void
   removeAccount:(id: string) => void
+  updateAccount: (id: string, changes: Partial<Account>) => void
 }
 
 export const useAccountStore = create<AccountStore>((set) => ({
@@ -30,4 +32,7 @@ export const useAccountStore = create<AccountStore>((set) => ({
   setBadge:      (id, count)=> set((s) => ({ badges: { ...s.badges, [id]: count } })),
   addAccount:    (account)  => set((s) => ({ accounts: [...s.accounts, account] })),
   removeAccount: (id)       => set((s) => ({ accounts: s.accounts.filter(a => a.id !== id) })),
+  updateAccount: (id, changes) => set((s) => ({
+    accounts: s.accounts.map(a => a.id === id ? { ...a, ...changes } : a)
+  })),
 }))
