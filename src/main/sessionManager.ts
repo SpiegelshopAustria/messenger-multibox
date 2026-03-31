@@ -21,6 +21,14 @@ const views = new Map<string, WebContentsView>()
 let activeAccountId: string | null = null
 let mainWindow:      BrowserWindow | null = null
 
+// Account Login-Status
+type AccountStatus = 'loading' | 'connected' | 'qr_needed' | 'disconnected'
+const statusMap = new Map<string, AccountStatus>()
+
+export function getAccountStatus(id: string): AccountStatus {
+  return statusMap.get(id) ?? 'loading'
+}
+
 // -- Badge Callback --
 // Ermoeglicht index.ts den Tray ueber Badge-Updates zu informieren,
 // ohne zirkulaere Imports zwischen sessionManager <-> trayManager.
@@ -82,6 +90,33 @@ export function createView(win: BrowserWindow, account: Account): WebContentsVie
   })
 
   view.webContents.loadURL(account.url)
+
+  // Status: loading beim Start
+  statusMap.set(account.id, 'loading')
+  if (!win.webContents.isDestroyed()) {
+    win.webContents.send('account:status', { id: account.id, status: 'loading' })
+  }
+
+  // Status: connected/qr_needed wenn Seite fertig geladen
+  view.webContents.on('did-finish-load', () => {
+    const url = view.webContents.getURL()
+    let status: AccountStatus = 'connected'
+    if (url.includes('/qr') || url.includes('qr-code') || url === account.url + '/') {
+      status = 'qr_needed'
+    }
+    statusMap.set(account.id, status)
+    if (!win.webContents.isDestroyed()) {
+      win.webContents.send('account:status', { id: account.id, status })
+    }
+  })
+
+  // Status: disconnected bei Fehler
+  view.webContents.on('did-fail-load', () => {
+    statusMap.set(account.id, 'disconnected')
+    if (!win.webContents.isDestroyed()) {
+      win.webContents.send('account:status', { id: account.id, status: 'disconnected' })
+    }
+  })
 
   // User-Agent nur fuer WhatsApp setzen (andere Services brauchen das nicht)
   if (account.serviceId.startsWith('whatsapp')) {

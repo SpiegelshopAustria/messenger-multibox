@@ -4,7 +4,7 @@ import { TitleBar }        from './components/TitleBar'
 import { useAccountStore } from './store/accountStore'
 
 export function App() {
-  const { setAccounts, setActiveId, setBadge } = useAccountStore()
+  const { setAccounts, setActiveId, setBadge, setStatus } = useAccountStore()
   const isMac = window.electronAPI?.platform === 'darwin'
 
   useEffect(() => {
@@ -19,7 +19,10 @@ export function App() {
       window.electronAPI.switchAccount(id)
       setActiveId(id)
     })
-    return () => { cleanBadge(); cleanTray() }
+    const cleanStatus = window.electronAPI.onStatusUpdate(({ id, status }) => {
+      setStatus(id, status)
+    })
+    return () => { cleanBadge(); cleanTray(); cleanStatus() }
   }, [])
 
   return (

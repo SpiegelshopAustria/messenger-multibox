@@ -31,6 +31,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateAccount: (id: string, changes: Record<string, unknown>) =>
     ipcRenderer.invoke('account:update', { id, changes }),
   getServices: () => ipcRenderer.invoke('services:list'),
+  getAutoStart: () => ipcRenderer.invoke('autostart:get'),
+  setAutoStart: (enable: boolean) => ipcRenderer.invoke('autostart:set', { enable }),
+
+  onStatusUpdate: (cb: (data: { id: string; status: string }) => void) => {
+    const handler = (_: unknown, data: { id: string; status: string }) => cb(data)
+    ipcRenderer.on('account:status', handler)
+    return () => ipcRenderer.removeListener('account:status', handler)
+  },
 
   minimizeWindow:  () => ipcRenderer.send('window:minimize'),
   maximizeWindow:  () => ipcRenderer.send('window:maximize'),

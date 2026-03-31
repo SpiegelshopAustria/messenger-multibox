@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { AccountItem }      from './AccountItem'
 import { AddAccountModal }  from './AddAccountModal'
 import { EditAccountModal } from './EditAccountModal'
+import { SettingsPanel }    from './SettingsPanel'
 import { useAccountStore, Account } from '../store/accountStore'
 
 // Typen fuer window.electronAPI (vom Preload bereitgestellt)
@@ -16,21 +17,25 @@ declare global {
       getServices:      () => Promise<Array<{ id: string; name: string; url: string; color: string; emoji: string }>>
       onBadgeUpdate:    (cb: (d: { id: string; count: number }) => void) => () => void
       onSwitchFromTray: (cb: (d: { id: string }) => void) => () => void
+      onStatusUpdate:   (cb: (d: { id: string; status: string }) => void) => () => void
       minimizeWindow:   () => void
       maximizeWindow:   () => void
       closeWindow:      () => void
       isMaximized:      () => Promise<boolean>
       onMaximizeChange: (cb: (maximized: boolean) => void) => () => void
+      getAutoStart:     () => Promise<boolean>
+      setAutoStart:     (enable: boolean) => Promise<{ success: boolean; enabled: boolean }>
       platform:         string
     }
   }
 }
 
 export function Sidebar() {
-  const { accounts, activeId, badges, setActiveId, addAccount, removeAccount, updateAccount } =
+  const { accounts, activeId, badges, statuses, setActiveId, addAccount, removeAccount, updateAccount } =
     useAccountStore()
   const [showModal, setShowModal] = useState(false)
   const [editAccount, setEditAccount] = useState<Account | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
   const isMac = window.electronAPI?.platform === 'darwin'
 
   const handleSwitch = async (id: string) => {
@@ -73,9 +78,7 @@ export function Sidebar() {
           WebkitAppRegion: 'drag',
         } as React.CSSProperties}
       >
-        {/* Mac: Spacer damit Traffic Lights (hiddenInset) genug Platz haben */}
         {isMac && <div style={{ height: '32px' }} />}
-        {/* Windows: Spacer fuer TitleBar */}
         {!isMac && <div style={{ height: '8px' }} />}
 
         {/* Account Liste */}
@@ -92,11 +95,28 @@ export function Sidebar() {
                 {...account}
                 isActive={activeId === account.id}
                 badge={badges[account.id] ?? 0}
+                status={statuses[account.id]}
                 onClick={() => handleSwitch(account.id)}
                 onRemove={() => handleRemove(account.id)}
                 onEdit={() => setEditAccount(account)}
               />
             ))}
+        </div>
+
+        {/* Settings */}
+        <div
+          onClick={() => setShowSettings(true)}
+          style={{
+            width: '44px', height: '44px', borderRadius: '50%',
+            background: '#2a3942',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', fontSize: '18px', color: '#8696a0',
+            marginBottom: '8px', transition: 'background 0.2s',
+            WebkitAppRegion: 'no-drag',
+          } as React.CSSProperties}
+          title="Einstellungen"
+        >
+          {'\u2699\uFE0F'}
         </div>
 
         {/* Account hinzufuegen */}
@@ -107,7 +127,7 @@ export function Sidebar() {
             background: '#2a3942',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', fontSize: '24px', color: '#8696a0',
-            marginTop: '8px', transition: 'background 0.2s',
+            marginTop: '0px', transition: 'background 0.2s',
             WebkitAppRegion: 'no-drag',
           } as React.CSSProperties}
           title="Account hinzufuegen"
@@ -130,6 +150,8 @@ export function Sidebar() {
           onClose={() => setEditAccount(null)}
         />
       )}
+
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
     </>
   )
 }

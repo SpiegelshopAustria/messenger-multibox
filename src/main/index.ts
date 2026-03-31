@@ -10,6 +10,8 @@ import {
 } from './sessionManager'
 import { registerIpcHandlers }                       from './ipcHandlers'
 import { createTray, destroyTray, updateTrayBadge }  from './trayManager'
+import { registerShortcuts, unregisterShortcuts }     from './shortcuts'
+import { loadWindowState, saveWindowState }           from './windowState'
 
 nativeTheme.themeSource = 'dark'
 
@@ -18,10 +20,13 @@ app.on('before-quit', () => { isQuitting = true })
 
 function createWindow(): BrowserWindow {
   const isMac = process.platform === 'darwin'
+  const savedState = loadWindowState()
 
   const win = new BrowserWindow({
-    width:           1200,
-    height:          800,
+    x:               savedState.x,
+    y:               savedState.y,
+    width:           savedState.width,
+    height:          savedState.height,
     minWidth:        800,
     minHeight:       600,
     show:            false,
@@ -43,7 +48,7 @@ function createWindow(): BrowserWindow {
   setMainWindow(win)
   registerIpcHandlers(win)
 
-  // Badge-Callback: sessionManager -> trayManager (kein zirkulaerer Import)
+  // Badge-Callback: sessionManager -> trayManager
   setBadgeCallback((id, count, w) => updateTrayBadge(id, count, w))
 
   // Renderer laden
@@ -53,8 +58,11 @@ function createWindow(): BrowserWindow {
     win.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
 
-  // Fenster erst anzeigen wenn Renderer bereit -> kein Flash
-  win.once('ready-to-show', () => win.show())
+  // Fenster erst anzeigen wenn Renderer bereit
+  win.once('ready-to-show', () => {
+    if (savedState.maximized) win.maximize()
+    win.show()
+  })
 
   // Accounts wiederherstellen sobald Renderer geladen
   win.webContents.once('did-finish-load', () => {
@@ -63,12 +71,14 @@ function createWindow(): BrowserWindow {
     if (accounts.length > 0) showAccount(win, accounts[0].id)
   })
 
-  win.on('resize', () => handleResize(win))
-  win.on('maximize',   () => win.webContents.send('window:maximizeChange', true))
-  win.on('unmaximize', () => win.webContents.send('window:maximizeChange', false))
+  win.on('resize', () => { handleResize(win); saveWindowState(win) })
+  win.on('move', () => saveWindowState(win))
+  win.on('maximize',   () => { win.webContents.send('window:maximizeChange', true);  saveWindowState(win) })
+  win.on('unmaximize', () => { win.webContents.send('window:maximizeChange', false); saveWindowState(win) })
 
   // Windows: Schliessen -> in Tray minimieren (nicht beenden)
   win.on('close', (event) => {
+    saveWindowState(win)
     if (!isQuitting && process.platform === 'win32') {
       event.preventDefault()
       win.hide()
@@ -81,6 +91,7 @@ function createWindow(): BrowserWindow {
 app.whenReady().then(() => {
   const win = createWindow()
   createTray(win)
+  registerShortcuts(win)
 
   // Mac: Fenster bei Dock-Klick wiederherstellen
   app.on('activate', () => {
@@ -97,4 +108,7 @@ app.on('window-all-closed', () => {
   }
 })
 
-app.on('will-quit', () => destroyTray())
+app.on('will-quit', () => {
+  destroyTray()
+  unregisterShortcuts()
+})

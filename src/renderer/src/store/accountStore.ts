@@ -20,12 +20,15 @@ interface AccountStore {
   addAccount:   (account: Account) => void
   removeAccount:(id: string) => void
   updateAccount: (id: string, changes: Partial<Account>) => void
+  statuses:  Record<string, string>
+  setStatus: (id: string, status: string) => void
 }
 
 export const useAccountStore = create<AccountStore>((set) => ({
   accounts:  [],
   activeId:  null,
   badges:    {},
+  statuses:  {},
 
   setAccounts:   (accounts) => set({ accounts }),
   setActiveId:   (id)       => set({ activeId: id }),
@@ -35,4 +38,5 @@ export const useAccountStore = create<AccountStore>((set) => ({
   updateAccount: (id, changes) => set((s) => ({
     accounts: s.accounts.map(a => a.id === id ? { ...a, ...changes } : a)
   })),
+  setStatus: (id, status) => set((s) => ({ statuses: { ...s.statuses, [id]: status } })),
 }))

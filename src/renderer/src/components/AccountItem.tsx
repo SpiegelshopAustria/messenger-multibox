@@ -8,12 +8,13 @@ interface Props {
   emoji?:    string
   isActive:  boolean
   badge:     number
+  status?:   string
   onClick:   () => void
   onRemove:  () => void
   onEdit:    () => void
 }
 
-export function AccountItem({ name, color, emoji, isActive, badge, onClick, onRemove, onEdit }: Props) {
+export function AccountItem({ name, color, emoji, isActive, badge, status, onClick, onRemove, onEdit }: Props) {
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null)
 
   const display = emoji || name.slice(0, 2).toUpperCase()
@@ -86,6 +87,28 @@ export function AccountItem({ name, color, emoji, isActive, badge, onClick, onRe
           }}>
             {badge > 99 ? '99+' : badge}
           </div>
+        )}
+
+        {/* Status dot */}
+        {status && status !== 'loading' && (
+          <div style={{
+            position: 'absolute', bottom: '0px', right: '6px',
+            width: '10px', height: '10px',
+            borderRadius: '50%',
+            background: {
+              'connected':    '#25d366',
+              'qr_needed':    '#f59e0b',
+              'disconnected': '#ef4444',
+              'loading':      '#6b7280',
+            }[status] ?? '#6b7280',
+            border: '2px solid #111b21',
+          }}
+            title={
+              status === 'connected'    ? 'Verbunden' :
+              status === 'qr_needed'    ? 'QR-Code scannen' :
+              status === 'disconnected' ? 'Getrennt' : ''
+            }
+          />
         )}
       </div>
 

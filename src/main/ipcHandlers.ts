@@ -8,6 +8,7 @@ import {
   removeView,
 } from './sessionManager'
 import { SERVICES } from './services'
+import { getAutoStartStatus, setAutoStart } from './autoStart'
 
 // Guard: verhindert doppelte Handler-Registrierung
 // (relevant auf Mac wenn createWindow() mehrfach aufgerufen wird)
@@ -19,6 +20,11 @@ export function registerIpcHandlers(win: BrowserWindow): void {
 
   ipcMain.handle('account:list', () => loadAccounts())
   ipcMain.handle('services:list', () => SERVICES)
+  ipcMain.handle('autostart:get', () => getAutoStartStatus())
+  ipcMain.handle('autostart:set', (_event, { enable }: { enable: boolean }) => {
+    setAutoStart(enable)
+    return { success: true, enabled: enable }
+  })
 
   ipcMain.handle('account:add', (_event, account: Omit<Account, 'order'>) => {
     const accounts = loadAccounts()
