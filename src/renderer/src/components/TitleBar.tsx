@@ -63,7 +63,7 @@ export function TitleBar() {
           style={btnStyle()}
           title="Schliessen"
         >
-          \u2715
+          {'\u2715'}
         </button>
       </div>
     </div>
