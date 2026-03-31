@@ -24,9 +24,14 @@ function createWindow(): BrowserWindow {
     height:          800,
     minWidth:        800,
     minHeight:       600,
-    show:            false,       // kein weisser Flash beim Start
-    frame:           isMac,       // Mac: nativ mit Traffic Lights
-    titleBarStyle:   isMac ? 'hiddenInset' : 'default',
+    show:            false,
+    ...(isMac ? {
+      frame:         true,
+      titleBarStyle: 'hiddenInset',
+    } : {
+      frame:         false,
+    }),
+    resizable:       true,
     backgroundColor: '#111b21',
     webPreferences: {
       preload:          path.join(__dirname, '../preload/index.js'),
@@ -59,6 +64,8 @@ function createWindow(): BrowserWindow {
   })
 
   win.on('resize', () => handleResize(win))
+  win.on('maximize',   () => win.webContents.send('window:maximizeChange', true))
+  win.on('unmaximize', () => win.webContents.send('window:maximizeChange', false))
 
   // Windows: Schliessen -> in Tray minimieren (nicht beenden)
   win.on('close', (event) => {

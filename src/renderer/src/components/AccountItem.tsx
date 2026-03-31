@@ -1,16 +1,17 @@
 import React from 'react'
 
 interface Props {
-  id:       string
-  name:     string
-  color:    string
-  isActive: boolean
-  badge:    number
-  onClick:  () => void
-  onRemove: () => void
+  id:           string
+  name:         string
+  color:        string
+  isActive:     boolean
+  badge:        number
+  serviceEmoji?: string
+  onClick:      () => void
+  onRemove:     () => void
 }
 
-export function AccountItem({ name, color, isActive, badge, onClick, onRemove }: Props) {
+export function AccountItem({ name, color, isActive, badge, serviceEmoji, onClick, onRemove }: Props) {
   const initials = name.slice(0, 2).toUpperCase()
 
   return (
@@ -47,7 +48,7 @@ export function AccountItem({ name, color, isActive, badge, onClick, onRemove }:
         boxShadow: isActive ? `0 0 0 2px #25d366` : 'none',
         userSelect: 'none',
       }}>
-        {initials}
+        {badge > 0 ? initials : (serviceEmoji || initials)}
       </div>
 
       {/* Unread badge */}

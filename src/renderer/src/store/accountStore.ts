@@ -5,6 +5,8 @@ export interface Account {
   name: string
   color: string
   order: number
+  serviceId: string
+  url: string
 }
 
 interface AccountStore {

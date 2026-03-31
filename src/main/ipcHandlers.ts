@@ -7,6 +7,7 @@ import {
   showAccount,
   removeView,
 } from './sessionManager'
+import { SERVICES } from './services'
 
 // Guard: verhindert doppelte Handler-Registrierung
 // (relevant auf Mac wenn createWindow() mehrfach aufgerufen wird)
@@ -17,6 +18,7 @@ export function registerIpcHandlers(win: BrowserWindow): void {
   _registered = true
 
   ipcMain.handle('account:list', () => loadAccounts())
+  ipcMain.handle('services:list', () => SERVICES)
 
   ipcMain.handle('account:add', (_event, account: Omit<Account, 'order'>) => {
     const accounts = loadAccounts()
@@ -50,5 +52,12 @@ export function registerIpcHandlers(win: BrowserWindow): void {
   })
 
   ipcMain.on('window:minimize', () => { if (!win.isDestroyed()) win.minimize() })
-  ipcMain.on('window:close',    () => { if (!win.isDestroyed()) win.close() })
+  ipcMain.on('window:maximize', () => {
+    if (!win.isDestroyed()) {
+      if (win.isMaximized()) win.unmaximize()
+      else win.maximize()
+    }
+  })
+  ipcMain.on('window:close', () => { if (!win.isDestroyed()) win.close() })
+  ipcMain.handle('window:isMaximized', () => win.isMaximized())
 }

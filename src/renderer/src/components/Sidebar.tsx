@@ -7,21 +7,36 @@ import { useAccountStore } from '../store/accountStore'
 declare global {
   interface Window {
     electronAPI: {
-      addAccount:       (a: { id: string; name: string; color: string }) => Promise<{ success: boolean }>
+      addAccount:       (a: { id: string; name: string; color: string; serviceId: string; url: string }) => Promise<{ success: boolean }>
       removeAccount:    (id: string) => Promise<{ success: boolean; switchTo?: string | null }>
       switchAccount:    (id: string) => Promise<{ success: boolean }>
-      getAccounts:      () => Promise<Array<{ id: string; name: string; color: string; order: number }>>
+      getAccounts:      () => Promise<Array<{ id: string; name: string; color: string; order: number; serviceId: string; url: string }>>
+      getServices:      () => Promise<Array<{ id: string; name: string; url: string; color: string; emoji: string }>>
       onBadgeUpdate:    (cb: (d: { id: string; count: number }) => void) => () => void
       onSwitchFromTray: (cb: (d: { id: string }) => void) => () => void
       minimizeWindow:   () => void
+      maximizeWindow:   () => void
       closeWindow:      () => void
+      isMaximized:      () => Promise<boolean>
+      onMaximizeChange: (cb: (maximized: boolean) => void) => () => void
       platform:         string
     }
   }
 }
 
+const SERVICE_EMOJIS: Record<string, string> = {
+  'whatsapp':          '\u{1F4AC}',
+  'whatsapp-business': '\u{1F3E2}',
+  'telegram':          '\u{2708}\u{FE0F}',
+  'signal':            '\u{1F512}',
+  'messenger':         '\u{26A1}',
+  'discord':           '\u{1F3AE}',
+  'slack':             '\u{1F537}',
+  'teams':             '\u{1F535}',
+}
+
 export function Sidebar() {
-  const { accounts, activeId, badges, setActiveId, addAccount, removeAccount, setBadge } =
+  const { accounts, activeId, badges, setActiveId, addAccount, removeAccount } =
     useAccountStore()
   const [showModal, setShowModal] = useState(false)
   const isMac = window.electronAPI?.platform === 'darwin'
@@ -31,11 +46,11 @@ export function Sidebar() {
     setActiveId(id)
   }
 
-  const handleAdd = async (name: string, color: string) => {
-    const id     = `wa-${Date.now()}`
-    const result = await window.electronAPI.addAccount({ id, name, color })
+  const handleAdd = async (name: string, color: string, serviceId: string, url: string) => {
+    const id     = `${serviceId}-${Date.now()}`
+    const result = await window.electronAPI.addAccount({ id, name, color, serviceId, url })
     if (result?.success) {
-      addAccount({ id, name, color, order: accounts.length })
+      addAccount({ id, name, color, order: accounts.length, serviceId, url })
       setActiveId(id)
     }
   }
@@ -57,38 +72,13 @@ export function Sidebar() {
           padding: '12px 0',
           borderRight: '1px solid #1f2c34',
           position: 'fixed', left: 0, top: 0, zIndex: 100,
-          // Sidebar ist draggable (Fenster verschieben)
           WebkitAppRegion: 'drag',
         } as React.CSSProperties}
       >
-        {/* Windows: eigene Window Controls (kein nativer Frame) */}
-        {!isMac && (
-          <div style={{
-            display: 'flex', flexDirection: 'column', gap: '6px',
-            marginBottom: '16px',
-            WebkitAppRegion: 'no-drag',
-          } as React.CSSProperties}>
-            <div
-              onClick={() => window.electronAPI.closeWindow()}
-              style={{
-                width: '12px', height: '12px', borderRadius: '50%',
-                background: '#ff5f57', cursor: 'pointer',
-              }}
-              title="Schliessen"
-            />
-            <div
-              onClick={() => window.electronAPI.minimizeWindow()}
-              style={{
-                width: '12px', height: '12px', borderRadius: '50%',
-                background: '#ffbd2e', cursor: 'pointer',
-              }}
-              title="Minimieren"
-            />
-          </div>
-        )}
-
         {/* Mac: Spacer damit Traffic Lights (hiddenInset) genug Platz haben */}
         {isMac && <div style={{ height: '32px' }} />}
+        {/* Windows: Spacer fuer TitleBar */}
+        {!isMac && <div style={{ height: '8px' }} />}
 
         {/* Account Liste */}
         <div style={{
@@ -104,6 +94,7 @@ export function Sidebar() {
                 {...account}
                 isActive={activeId === account.id}
                 badge={badges[account.id] ?? 0}
+                serviceEmoji={SERVICE_EMOJIS[account.serviceId]}
                 onClick={() => handleSwitch(account.id)}
                 onRemove={() => handleRemove(account.id)}
               />
@@ -121,7 +112,7 @@ export function Sidebar() {
             marginTop: '8px', transition: 'background 0.2s',
             WebkitAppRegion: 'no-drag',
           } as React.CSSProperties}
-          title="WhatsApp Account hinzufuegen"
+          title="Account hinzufuegen"
         >
           +
         </div>

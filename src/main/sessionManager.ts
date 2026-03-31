@@ -12,6 +12,8 @@ export interface Account {
   name: string
   color: string
   order: number
+  serviceId: string
+  url: string
 }
 
 const views = new Map<string, WebContentsView>()
@@ -53,7 +55,14 @@ export function saveAccounts(accounts: Account[]): void {
 
 function getViewBounds(win: BrowserWindow) {
   const [width, height] = win.getContentSize()
-  return { x: SIDEBAR_WIDTH, y: 0, width: Math.max(1, width - SIDEBAR_WIDTH), height: Math.max(1, height) }
+  const isMac    = process.platform === 'darwin'
+  const topOffset = isMac ? 0 : 32  // TitleBar-Hoehe auf Windows
+  return {
+    x:      SIDEBAR_WIDTH,
+    y:      topOffset,
+    width:  Math.max(1, width - SIDEBAR_WIDTH),
+    height: Math.max(1, height - topOffset),
+  }
 }
 
 // -- View erstellen --
@@ -61,11 +70,6 @@ function getViewBounds(win: BrowserWindow) {
 export function createView(win: BrowserWindow, account: Account): WebContentsView {
   const partition = `persist:wa-${account.id}`
   const ses       = session.fromPartition(partition)
-
-  ses.webRequest.onBeforeSendHeaders((details, callback) => {
-    details.requestHeaders['User-Agent'] = CHROME_UA
-    callback({ requestHeaders: details.requestHeaders })
-  })
 
   const view = new WebContentsView({
     webPreferences: {
@@ -76,8 +80,16 @@ export function createView(win: BrowserWindow, account: Account): WebContentsVie
     },
   })
 
-  view.webContents.loadURL(WA_URL)
-  view.webContents.setUserAgent(CHROME_UA)
+  view.webContents.loadURL(account.url)
+
+  // User-Agent nur fuer WhatsApp setzen (andere Services brauchen das nicht)
+  if (account.serviceId.startsWith('whatsapp')) {
+    view.webContents.setUserAgent(CHROME_UA)
+    ses.webRequest.onBeforeSendHeaders((details, callback) => {
+      details.requestHeaders['User-Agent'] = CHROME_UA
+      callback({ requestHeaders: details.requestHeaders })
+    })
+  }
 
   // Badge via Titel-Parsing: WA setzt "(3) WhatsApp" bei ungelesenen
   view.webContents.on('page-title-updated', (_event, title) => {

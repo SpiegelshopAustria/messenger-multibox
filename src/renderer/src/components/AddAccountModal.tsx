@@ -1,24 +1,46 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
-const COLORS = [
-  '#25d366', '#128c7e', '#075e54',
-  '#34b7f1', '#0063cb', '#7c3aed',
-  '#dc2626', '#ea580c', '#ca8a04',
-]
+interface Service {
+  id: string
+  name: string
+  url: string
+  color: string
+  emoji: string
+}
 
 interface Props {
-  onAdd:   (name: string, color: string) => void
+  onAdd:   (name: string, color: string, serviceId: string, url: string) => void
   onClose: () => void
 }
 
 export function AddAccountModal({ onAdd, onClose }: Props) {
-  const [name,  setName]  = useState('')
-  const [color, setColor] = useState(COLORS[0])
+  const [services,   setServices]   = useState<Service[]>([])
+  const [serviceId,  setServiceId]  = useState('')
+  const [name,       setName]       = useState('')
+  const [color,      setColor]      = useState('#25d366')
+
+  useEffect(() => {
+    window.electronAPI.getServices().then((list: Service[]) => {
+      setServices(list)
+      if (list.length > 0) {
+        setServiceId(list[0].id)
+        setColor(list[0].color)
+        setName(list[0].name)
+      }
+    })
+  }, [])
+
+  const selectedService = services.find(s => s.id === serviceId)
+
+  const handleServiceSelect = (s: Service) => {
+    setServiceId(s.id)
+    setColor(s.color)
+    setName(s.name)
+  }
 
   const submit = () => {
-    const trimmed = name.trim()
-    if (!trimmed) return
-    onAdd(trimmed, color)
+    if (!name.trim() || !serviceId || !selectedService) return
+    onAdd(name.trim(), color, serviceId, selectedService.url)
     onClose()
   }
 
@@ -26,7 +48,7 @@ export function AddAccountModal({ onAdd, onClose }: Props) {
     <div
       style={{
         position: 'fixed', inset: 0,
-        background: 'rgba(0,0,0,0.75)',
+        background: 'rgba(0,0,0,0.8)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         zIndex: 9999,
       }}
@@ -34,9 +56,9 @@ export function AddAccountModal({ onAdd, onClose }: Props) {
     >
       <div
         style={{
-          background: '#1f2c34', borderRadius: '12px',
-          padding: '24px', width: '300px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          background: '#1f2c34', borderRadius: '14px',
+          padding: '24px', width: '360px',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -44,42 +66,61 @@ export function AddAccountModal({ onAdd, onClose }: Props) {
           Account hinzufuegen
         </h3>
 
+        {/* Service Auswahl */}
+        <label style={{ color: '#8696a0', fontSize: '12px', display: 'block', marginBottom: '8px' }}>
+          Messenger waehlen
+        </label>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '8px', marginBottom: '20px',
+        }}>
+          {services.map((s) => (
+            <div
+              key={s.id}
+              onClick={() => handleServiceSelect(s)}
+              title={s.name}
+              style={{
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                padding: '10px 4px', borderRadius: '10px',
+                background: serviceId === s.id ? s.color + '33' : '#2a3942',
+                border: serviceId === s.id ? `2px solid ${s.color}` : '2px solid transparent',
+                cursor: 'pointer', transition: 'all 0.15s',
+                fontSize: '20px',
+              }}
+            >
+              <span>{s.emoji}</span>
+              <span style={{
+                fontSize: '9px', color: '#8696a0',
+                marginTop: '4px', textAlign: 'center',
+                lineHeight: '1.2',
+              }}>
+                {s.name.replace(' Business', '\nBiz')}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Name */}
         <label style={{ color: '#8696a0', fontSize: '12px', display: 'block', marginBottom: '6px' }}>
-          Name / Bezeichnung
+          Bezeichnung
         </label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') submit() }}
-          placeholder="Privat, Buero, Werkstatt ..."
+          placeholder="z.B. Privat, Buero, Werkstatt ..."
           autoFocus
           style={{
             width: '100%', background: '#2a3942',
             border: '1px solid #3b4a54', borderRadius: '8px',
             padding: '10px 12px', color: '#e9edef', fontSize: '14px',
-            outline: 'none', marginBottom: '16px', boxSizing: 'border-box',
+            outline: 'none', marginBottom: '20px', boxSizing: 'border-box',
           }}
         />
 
-        <label style={{ color: '#8696a0', fontSize: '12px', display: 'block', marginBottom: '8px' }}>
-          Farbe
-        </label>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
-          {COLORS.map((c) => (
-            <div
-              key={c}
-              onClick={() => setColor(c)}
-              style={{
-                width: '28px', height: '28px', borderRadius: '50%',
-                background: c, cursor: 'pointer',
-                boxShadow: color === c ? `0 0 0 3px #fff, 0 0 0 5px ${c}` : 'none',
-                transition: 'box-shadow 0.15s',
-              }}
-            />
-          ))}
-        </div>
-
+        {/* Buttons */}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
@@ -96,7 +137,7 @@ export function AddAccountModal({ onAdd, onClose }: Props) {
             disabled={!name.trim()}
             style={{
               padding: '8px 16px', borderRadius: '8px', border: 'none',
-              background: name.trim() ? '#25d366' : '#1a5c36',
+              background: name.trim() && selectedService ? selectedService.color : '#1a3a2a',
               color: name.trim() ? '#fff' : '#8696a0',
               cursor: name.trim() ? 'pointer' : 'not-allowed',
               fontSize: '14px', fontWeight: '600',

@@ -25,7 +25,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('account:switch-from-tray', handler)
   },
 
-  minimizeWindow: () => ipcRenderer.send('window:minimize'),
-  closeWindow:    () => ipcRenderer.send('window:close'),
+  getServices: () => ipcRenderer.invoke('services:list'),
+
+  minimizeWindow:  () => ipcRenderer.send('window:minimize'),
+  maximizeWindow:  () => ipcRenderer.send('window:maximize'),
+  closeWindow:     () => ipcRenderer.send('window:close'),
+  isMaximized:     () => ipcRenderer.invoke('window:isMaximized'),
+  onMaximizeChange: (cb: (maximized: boolean) => void) => {
+    const handler = (_: unknown, val: boolean) => cb(val)
+    ipcRenderer.on('window:maximizeChange', handler)
+    return () => ipcRenderer.removeListener('window:maximizeChange', handler)
+  },
   platform:       process.platform,
 })
