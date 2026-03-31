@@ -1,0 +1,22 @@
+﻿{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "MrT - Master Prompt starten",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\_scripts\\run-prompt.ps1"],
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "new" },
+      "problemMatcher": []
+    },
+    {
+      "label": "MrT - Interaktiv starten",
+      "type": "shell",
+      "command": "claude --dangerously-skip-permissions",
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "always", "panel": "new" },
+      "problemMatcher": []
+    }
+  ]
+}
