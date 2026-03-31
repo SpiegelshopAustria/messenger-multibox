@@ -1,7 +1,22 @@
 {
-  "name": "whatsapp-multibox",
+  "name": "messenger-multibox",
   "version": "1.0.0",
-  "description": "Multiple WhatsApp accounts in one desktop app",
+  "description": "Multiple WhatsApp, Telegram, Signal and more — in one desktop app. Free & Open Source.",
+  "author": {
+    "name": "AIOffice",
+    "email": "office@aioffice.at",
+    "url": "https://aioffice.at"
+  },
+  "homepage": "https://github.com/DEIN_GITHUB_USERNAME/messenger-multibox",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DEIN_GITHUB_USERNAME/messenger-multibox.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "whatsapp", "messenger", "telegram", "signal", "desktop",
+    "electron", "multi-account", "productivity"
+  ],
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",

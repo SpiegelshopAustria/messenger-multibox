@@ -63,4 +63,6 @@ extraResources:
     to: resources/
     filter: ["**/*"]
 
-publish: null
+publish:
+  provider: github
+  releaseType: release
