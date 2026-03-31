@@ -1,0 +1,67 @@
+appId: at.aioffice.whatsapp-multibox
+productName: WhatsApp MultiBox
+copyright: Copyright © 2026
+
+directories:
+  output: release
+  buildResources: resources
+
+# -- Windows --
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  icon: resources/icon.png
+  requestedExecutionLevel: asInvoker
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: WhatsApp MultiBox
+  artifactName: WhatsApp-MultiBox-Setup-${version}.exe
+
+portable:
+  artifactName: WhatsApp-MultiBox-Portable-${version}.exe
+
+# -- Mac --
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  icon: resources/icon.icns
+  category: public.app-category.productivity
+  darkModeSupport: true
+  hardenedRuntime: false
+  gatekeeperAssess: false
+
+dmg:
+  artifactName: WhatsApp-MultiBox-${version}-${arch}.dmg
+  window:
+    width: 540
+    height: 380
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+# -- Gemeinsam --
+files:
+  - dist-electron/**/*
+  - dist/**/*
+  - resources/**/*
+  - "!**/*.map"
+  - "!**/node_modules/.cache"
+
+extraResources:
+  - from: resources/
+    to: resources/
+    filter: ["**/*"]
+
+publish: null
