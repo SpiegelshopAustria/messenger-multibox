@@ -190,3 +190,21 @@ export function setMainWindow(win: BrowserWindow): void {
 export function getActiveAccountId(): string | null {
   return activeAccountId
 }
+
+// -- Modal Support: View temporaer verstecken --
+
+export function hideActiveView(): void {
+  if (!activeAccountId || !mainWindow) return
+  const view = views.get(activeAccountId)
+  if (view && !view.webContents.isDestroyed()) {
+    view.setBounds({ x: 0, y: 0, width: 0, height: 0 })
+  }
+}
+
+export function showActiveView(): void {
+  if (!activeAccountId || !mainWindow) return
+  const view = views.get(activeAccountId)
+  if (view && !view.webContents.isDestroyed()) {
+    view.setBounds(getViewBounds(mainWindow))
+  }
+}

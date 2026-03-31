@@ -49,5 +49,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('window:maximizeChange', handler)
     return () => ipcRenderer.removeListener('window:maximizeChange', handler)
   },
+  modalOpen:  () => ipcRenderer.send('modal:open'),
+  modalClose: () => ipcRenderer.send('modal:close'),
   platform:       process.platform,
 })

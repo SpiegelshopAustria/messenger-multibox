@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useModal } from '../hooks/useModal'
 
 const EMOJI_GALLERY = [
   '\u{1F464}','\u{1F454}','\u{1F3E0}','\u{1F527}','\u{1F697}','\u{1F4BC}','\u{1F468}\u{200D}\u{1F4BB}','\u{1F469}\u{200D}\u{1F4BC}',
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export function EditAccountModal({ account, onSave, onClose }: Props) {
+  useModal()
   const [name,  setName]  = useState(account.name)
   const [color, setColor] = useState(account.color)
   const [emoji, setEmoji] = useState(account.emoji || '')

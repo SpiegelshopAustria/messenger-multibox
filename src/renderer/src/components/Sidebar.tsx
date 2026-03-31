@@ -25,6 +25,8 @@ declare global {
       onMaximizeChange: (cb: (maximized: boolean) => void) => () => void
       getAutoStart:     () => Promise<boolean>
       setAutoStart:     (enable: boolean) => Promise<{ success: boolean; enabled: boolean }>
+      modalOpen:        () => void
+      modalClose:       () => void
       platform:         string
     }
   }

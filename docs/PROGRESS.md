@@ -1,7 +1,7 @@
 # PROGRESS - whatsapp-multibox
 
 ## Letzter Schritt
-2026-03-31 - PROMPT-08 Production Features + Build abgeschlossen.
+2026-03-31 - PROMPT-09 Critical Fixes abgeschlossen.
 
 ## Status
 | Feature | Datei | Status | Datum |
@@ -14,6 +14,7 @@
 | Fixes + Multi-Service + Window Mgmt | PROMPT-06 | DONE | 2026-03-31 |
 | Kontextmenue + Edit + Emoji | PROMPT-07 | DONE | 2026-03-31 |
 | AutoStart + Shortcuts + Status + WindowState + Build | PROMPT-08 | DONE | 2026-03-31 |
+| Single Instance Lock + Modal Fix | PROMPT-09 | DONE | 2026-03-31 |
 
 ## Build Output
 | Datei | Plattform | Typ |
@@ -39,3 +40,4 @@
 2026-03-31 - PROMPT-06 fertig: Multi-Service Support (8 Messenger), TitleBar mit Window Controls, Service-Auswahl Modal, BrowserView Offset fix, Account Interface erweitert (serviceId, url).
 2026-03-31 - PROMPT-07 fertig: ContextMenu, EditAccountModal mit Emoji-Galerie, account:update IPC, AccountItem mit Rechtsklick-Menue.
 2026-03-31 - PROMPT-08 fertig: autoStart.ts, shortcuts.ts (Ctrl+1-9, Ctrl+W, Ctrl+Shift+M), windowState.ts, Status Indicator, SettingsPanel, Production Build (Setup+Portable 79MB).
+2026-03-31 - PROMPT-09 fertig: Single Instance Lock, Modal-over-WebView Fix (hideActiveView/showActiveView), useModal Hook in alle 4 Modals.

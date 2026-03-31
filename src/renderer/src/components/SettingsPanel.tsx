@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
+import { useModal } from '../hooks/useModal'
 
 interface Props {
   onClose: () => void
 }
 
 export function SettingsPanel({ onClose }: Props) {
+  useModal()
   const [autoStart, setAutoStartState] = useState(false)
   const [loading,   setLoading]        = useState(true)
 

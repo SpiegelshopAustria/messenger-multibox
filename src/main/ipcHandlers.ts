@@ -6,6 +6,8 @@ import {
   createView,
   showAccount,
   removeView,
+  hideActiveView,
+  showActiveView,
 } from './sessionManager'
 import { SERVICES } from './services'
 import { getAutoStartStatus, setAutoStart } from './autoStart'
@@ -73,4 +75,8 @@ export function registerIpcHandlers(win: BrowserWindow): void {
   })
   ipcMain.on('window:close', () => { if (!win.isDestroyed()) win.close() })
   ipcMain.handle('window:isMaximized', () => win.isMaximized())
+
+  // Modal open/close -> View verstecken/zeigen
+  ipcMain.on('modal:open',  () => hideActiveView())
+  ipcMain.on('modal:close', () => showActiveView())
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useModal } from '../hooks/useModal'
 
 interface Service {
   id: string
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function AddAccountModal({ onAdd, onClose }: Props) {
+  useModal()
   const [services,   setServices]   = useState<Service[]>([])
   const [serviceId,  setServiceId]  = useState('')
   const [name,       setName]       = useState('')

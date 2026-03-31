@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react'
+import { useModal } from '../hooks/useModal'
 
 export interface ContextMenuItem {
   label:     string
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function ContextMenu({ x, y, items, onClose }: Props) {
+  useModal()
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {

@@ -15,6 +15,24 @@ import { loadWindowState, saveWindowState }           from './windowState'
 
 nativeTheme.themeSource = 'dark'
 
+// -- Single Instance Lock --
+const gotLock = app.requestSingleInstanceLock()
+
+if (!gotLock) {
+  app.quit()
+  process.exit(0)
+}
+
+app.on('second-instance', () => {
+  const windows = BrowserWindow.getAllWindows()
+  if (windows.length > 0) {
+    const win = windows[0]
+    if (win.isMinimized()) win.restore()
+    if (!win.isVisible()) win.show()
+    win.focus()
+  }
+})
+
 let isQuitting = false
 app.on('before-quit', () => { isQuitting = true })
 
