@@ -8,8 +8,8 @@ import {
   setMainWindow,
   setBadgeCallback,
 } from './sessionManager'
-import { registerIpcHandlers }          from './ipcHandlers'
-import { createTray, destroyTray, updateTrayBadge } from './trayManager'
+import { registerIpcHandlers }                       from './ipcHandlers'
+import { createTray, destroyTray, updateTrayBadge }  from './trayManager'
 
 nativeTheme.themeSource = 'dark'
 
@@ -24,8 +24,8 @@ function createWindow(): BrowserWindow {
     height:          800,
     minWidth:        800,
     minHeight:       600,
-    show:            false,          // kein weisser Flash beim Start
-    frame:           isMac,          // Mac: nativer Frame mit Traffic Lights
+    show:            false,       // kein weisser Flash beim Start
+    frame:           isMac,       // Mac: nativ mit Traffic Lights
     titleBarStyle:   isMac ? 'hiddenInset' : 'default',
     backgroundColor: '#111b21',
     webPreferences: {
@@ -38,7 +38,7 @@ function createWindow(): BrowserWindow {
   setMainWindow(win)
   registerIpcHandlers(win)
 
-  // Badge-Updates an Tray weiterleiten (via Callback, kein zirkulaerer Import)
+  // Badge-Callback: sessionManager -> trayManager (kein zirkulaerer Import)
   setBadgeCallback((id, count, w) => updateTrayBadge(id, count, w))
 
   // Renderer laden
@@ -48,7 +48,7 @@ function createWindow(): BrowserWindow {
     win.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
 
-  // Erst anzeigen wenn Renderer bereit -> kein weisser Flash
+  // Fenster erst anzeigen wenn Renderer bereit -> kein Flash
   win.once('ready-to-show', () => win.show())
 
   // Accounts wiederherstellen sobald Renderer geladen
@@ -60,7 +60,7 @@ function createWindow(): BrowserWindow {
 
   win.on('resize', () => handleResize(win))
 
-  // Windows: minimize to tray statt schliessen
+  // Windows: Schliessen -> in Tray minimieren (nicht beenden)
   win.on('close', (event) => {
     if (!isQuitting && process.platform === 'win32') {
       event.preventDefault()
@@ -75,11 +75,11 @@ app.whenReady().then(() => {
   const win = createWindow()
   createTray(win)
 
-  // Mac: Fenster wiederherstellen wenn Dock-Icon geklickt
+  // Mac: Fenster bei Dock-Klick wiederherstellen
   app.on('activate', () => {
-    const windows = BrowserWindow.getAllWindows()
-    if (windows.length === 0) createWindow()
-    else windows[0].show()
+    const wins = BrowserWindow.getAllWindows()
+    if (wins.length === 0) createWindow()
+    else wins[0].show()
   })
 })
 
