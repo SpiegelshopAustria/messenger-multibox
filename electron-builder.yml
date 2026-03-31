@@ -53,8 +53,7 @@ dmg:
 
 # -- Gemeinsam --
 files:
-  - dist-electron/**/*
-  - dist/**/*
+  - out/**/*
   - resources/**/*
   - "!**/*.map"
   - "!**/node_modules/.cache"
