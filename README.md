@@ -6,8 +6,8 @@
 
 Free, Open Source, no account needed.
 
-[![Download Windows](https://img.shields.io/badge/Download-Windows%20.exe-0078d4?style=for-the-badge&logo=windows)](https://github.com/DEIN_GITHUB_USERNAME/messenger-multibox/releases/latest)
-[![Download Mac](https://img.shields.io/badge/Download-Mac%20.dmg-000000?style=for-the-badge&logo=apple)](https://github.com/DEIN_GITHUB_USERNAME/messenger-multibox/releases/latest)
+[![Download Windows](https://img.shields.io/badge/Download-Windows%20.exe-0078d4?style=for-the-badge&logo=windows)](https://github.com/SpiegelshopAustria/messenger-multibox/releases/latest)
+[![Download Mac](https://img.shields.io/badge/Download-Mac%20.dmg-000000?style=for-the-badge&logo=apple)](https://github.com/SpiegelshopAustria/messenger-multibox/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
 </div>
@@ -36,7 +36,7 @@ Free, Open Source, no account needed.
 | Mac Intel | `Messenger-MultiBox-x.x.x-x64.dmg` | For Intel Macs |
 | Mac Apple Silicon | `Messenger-MultiBox-x.x.x-arm64.dmg` | For M1/M2/M3 Macs |
 
-[**-> Download latest release**](https://github.com/DEIN_GITHUB_USERNAME/messenger-multibox/releases/latest)
+[**-> Download latest release**](https://github.com/SpiegelshopAustria/messenger-multibox/releases/latest)
 
 ---
 

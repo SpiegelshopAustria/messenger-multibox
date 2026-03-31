@@ -7,10 +7,10 @@
     "email": "office@aioffice.at",
     "url": "https://aioffice.at"
   },
-  "homepage": "https://github.com/DEIN_GITHUB_USERNAME/messenger-multibox",
+  "homepage": "https://github.com/SpiegelshopAustria/messenger-multibox",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DEIN_GITHUB_USERNAME/messenger-multibox.git"
+    "url": "https://github.com/SpiegelshopAustria/messenger-multibox.git"
   },
   "license": "MIT",
   "keywords": [
