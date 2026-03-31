@@ -3,7 +3,7 @@ import { AccountItem }      from './AccountItem'
 import { AddAccountModal }  from './AddAccountModal'
 import { EditAccountModal } from './EditAccountModal'
 import { SettingsPanel }    from './SettingsPanel'
-import { useAccountStore, Account } from '../store/accountStore'
+import { useAccountStore, type Account } from '../store/accountStore'
 
 // Typen fuer window.electronAPI (vom Preload bereitgestellt)
 declare global {
@@ -13,7 +13,7 @@ declare global {
       removeAccount:    (id: string) => Promise<{ success: boolean; switchTo?: string | null }>
       switchAccount:    (id: string) => Promise<{ success: boolean }>
       updateAccount:    (id: string, changes: Record<string, unknown>) => Promise<{ success: boolean }>
-      getAccounts:      () => Promise<Array<{ id: string; name: string; color: string; order: number; serviceId: string; url: string; emoji?: string }>>
+      getAccounts:      () => Promise<Array<{ id: string; name: string; color: string; order: number; serviceId: string; url: string; emoji?: string; customImage?: string }>>
       getServices:      () => Promise<Array<{ id: string; name: string; url: string; color: string; emoji: string }>>
       onBadgeUpdate:    (cb: (d: { id: string; count: number }) => void) => () => void
       onSwitchFromTray: (cb: (d: { id: string }) => void) => () => void
@@ -25,6 +25,9 @@ declare global {
       onMaximizeChange: (cb: (maximized: boolean) => void) => () => void
       getAutoStart:     () => Promise<boolean>
       setAutoStart:     (enable: boolean) => Promise<{ success: boolean; enabled: boolean }>
+      reorderAccounts:   (orderedIds: string[]) => Promise<{ success: boolean }>
+      setAccountImage:   (id: string, imageBase64: string) => Promise<{ success: boolean }>
+      removeAccountImage:(id: string) => Promise<{ success: boolean }>
       modalOpen:        () => void
       modalClose:       () => void
       platform:         string
@@ -33,11 +36,13 @@ declare global {
 }
 
 export function Sidebar() {
-  const { accounts, activeId, badges, statuses, setActiveId, addAccount, removeAccount, updateAccount } =
+  const { accounts, activeId, badges, statuses, setActiveId, addAccount, removeAccount, updateAccount, reorderAccounts } =
     useAccountStore()
   const [showModal, setShowModal] = useState(false)
   const [editAccount, setEditAccount] = useState<Account | null>(null)
   const [showSettings, setShowSettings] = useState(false)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const isMac = window.electronAPI?.platform === 'darwin'
 
   const handleSwitch = async (id: string) => {
@@ -61,10 +66,52 @@ export function Sidebar() {
     else if (result?.switchTo === null) setActiveId(null)
   }
 
-  const handleEdit = async (id: string, name: string, color: string, emoji: string) => {
-    const changes = { name, color, emoji }
+  const handleEdit = async (
+    id: string,
+    name: string,
+    color: string,
+    emoji: string,
+    customImage?: string
+  ) => {
+    const changes: Partial<Account> = { name, color, emoji, customImage }
     await window.electronAPI.updateAccount(id, changes)
+
+    if (customImage !== undefined) {
+      await window.electronAPI.setAccountImage(id, customImage)
+    }
+
     updateAccount(id, changes)
+  }
+
+  const handleDragStart = (index: number) => {
+    setDragIndex(index)
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    setDragOverIndex(index)
+  }
+
+  const handleDrop = async (index: number) => {
+    if (dragIndex === null || dragIndex === index) {
+      setDragIndex(null)
+      setDragOverIndex(null)
+      return
+    }
+    reorderAccounts(dragIndex, index)
+
+    const sorted = [...accounts].sort((a, b) => a.order - b.order)
+    const [moved] = sorted.splice(dragIndex, 1)
+    sorted.splice(index, 0, moved)
+    await window.electronAPI.reorderAccounts(sorted.map(a => a.id))
+
+    setDragIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDragIndex(null)
+    setDragOverIndex(null)
   }
 
   return (
@@ -91,17 +138,33 @@ export function Sidebar() {
         } as React.CSSProperties}>
           {[...accounts]
             .sort((a, b) => a.order - b.order)
-            .map((account) => (
-              <AccountItem
+            .map((account, index) => (
+              <div
                 key={account.id}
-                {...account}
-                isActive={activeId === account.id}
-                badge={badges[account.id] ?? 0}
-                status={statuses[account.id]}
-                onClick={() => handleSwitch(account.id)}
-                onRemove={() => handleRemove(account.id)}
-                onEdit={() => setEditAccount(account)}
-              />
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={e => handleDragOver(e, index)}
+                onDrop={() => handleDrop(index)}
+                onDragEnd={handleDragEnd}
+                style={{
+                  opacity: dragIndex === index ? 0.4 : 1,
+                  transform: dragOverIndex === index && dragIndex !== index
+                    ? 'translateY(4px) scale(1.05)'
+                    : 'none',
+                  transition: 'opacity 0.15s, transform 0.15s',
+                  cursor: 'grab',
+                }}
+              >
+                <AccountItem
+                  {...account}
+                  isActive={activeId === account.id}
+                  badge={badges[account.id] ?? 0}
+                  status={statuses[account.id]}
+                  onClick={() => handleSwitch(account.id)}
+                  onRemove={() => handleRemove(account.id)}
+                  onEdit={() => setEditAccount(account)}
+                />
+              </div>
             ))}
         </div>
 

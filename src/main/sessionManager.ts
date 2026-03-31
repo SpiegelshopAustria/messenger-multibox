@@ -15,6 +15,7 @@ export interface Account {
   serviceId: string
   url: string
   emoji?: string
+  customImage?: string
 }
 
 const views = new Map<string, WebContentsView>()
@@ -119,7 +120,7 @@ export function createView(win: BrowserWindow, account: Account): WebContentsVie
   })
 
   // User-Agent nur fuer WhatsApp setzen (andere Services brauchen das nicht)
-  if (account.serviceId.startsWith('whatsapp')) {
+  if (account.serviceId.startsWith('whatsapp') || account.serviceId === 'instagram') {
     view.webContents.setUserAgent(CHROME_UA)
     ses.webRequest.onBeforeSendHeaders((details, callback) => {
       details.requestHeaders['User-Agent'] = CHROME_UA

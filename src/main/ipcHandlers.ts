@@ -76,6 +76,33 @@ export function registerIpcHandlers(win: BrowserWindow): void {
   ipcMain.on('window:close', () => { if (!win.isDestroyed()) win.close() })
   ipcMain.handle('window:isMaximized', () => win.isMaximized())
 
+  // Reihenfolge persistieren
+  ipcMain.handle('account:reorder', (_event, { orderedIds }: { orderedIds: string[] }) => {
+    let accounts = loadAccounts()
+    accounts = accounts.map(a => ({
+      ...a,
+      order: orderedIds.indexOf(a.id),
+    }))
+    saveAccounts(accounts)
+    return { success: true }
+  })
+
+  // Custom Image: base64 in account speichern
+  ipcMain.handle('account:setImage', (_event, { id, imageBase64 }: { id: string; imageBase64: string }) => {
+    let accounts = loadAccounts()
+    accounts = accounts.map(a => a.id === id ? { ...a, customImage: imageBase64 } : a)
+    saveAccounts(accounts)
+    return { success: true }
+  })
+
+  // Image entfernen
+  ipcMain.handle('account:removeImage', (_event, { id }: { id: string }) => {
+    let accounts = loadAccounts()
+    accounts = accounts.map(a => a.id === id ? { ...a, customImage: undefined } : a)
+    saveAccounts(accounts)
+    return { success: true }
+  })
+
   // Modal open/close -> View verstecken/zeigen
   ipcMain.on('modal:open',  () => hideActiveView())
   ipcMain.on('modal:close', () => showActiveView())

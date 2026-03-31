@@ -1,7 +1,7 @@
 # PROGRESS - whatsapp-multibox
 
 ## Letzter Schritt
-2026-03-31 - PROMPT-10 GitHub Release Setup abgeschlossen.
+2026-03-31 - PROMPT-11 Drag & Drop + Custom Image Upload + Instagram abgeschlossen.
 
 ## Status
 | Feature | Datei | Status | Datum |
@@ -16,6 +16,7 @@
 | AutoStart + Shortcuts + Status + WindowState + Build | PROMPT-08 | DONE | 2026-03-31 |
 | Single Instance Lock + Modal Fix | PROMPT-09 | DONE | 2026-03-31 |
 | GitHub Actions + README + License | PROMPT-10 | DONE | 2026-03-31 |
+| Drag & Drop + Custom Image + Instagram | PROMPT-11 | DONE | 2026-03-31 |
 
 ## Build Output
 | Datei | Plattform | Typ |
@@ -43,3 +44,4 @@
 2026-03-31 - PROMPT-08 fertig: autoStart.ts, shortcuts.ts (Ctrl+1-9, Ctrl+W, Ctrl+Shift+M), windowState.ts, Status Indicator, SettingsPanel, Production Build (Setup+Portable 79MB).
 2026-03-31 - PROMPT-09 fertig: Single Instance Lock, Modal-over-WebView Fix (hideActiveView/showActiveView), useModal Hook in alle 4 Modals.
 2026-03-31 - PROMPT-10 fertig: package.json finalisiert, LICENSE (MIT), README.md, GitHub Actions release.yml, electron-builder publish config.
+2026-03-31 - PROMPT-11 fertig: Instagram Service, Drag & Drop Reorder (HTML5 Drag API), Custom Image Upload (base64, max 512px), EditAccountModal mit Bild-Upload, AccountItem mit customImage.

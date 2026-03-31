@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useModal } from '../hooks/useModal'
+import { processImageFile } from '../utils/imageUtils'
 
 const EMOJI_GALLERY = [
   '\u{1F464}','\u{1F454}','\u{1F3E0}','\u{1F527}','\u{1F697}','\u{1F4BC}','\u{1F468}\u{200D}\u{1F4BB}','\u{1F469}\u{200D}\u{1F4BC}',
@@ -18,32 +19,66 @@ const COLORS = [
 ]
 
 interface Account {
-  id:        string
-  name:      string
-  color:     string
-  emoji?:    string
-  serviceId: string
+  id:          string
+  name:        string
+  color:       string
+  emoji?:      string
+  customImage?: string
+  serviceId:   string
 }
 
 interface Props {
   account: Account
-  onSave:  (id: string, name: string, color: string, emoji: string) => void
+  onSave:  (id: string, name: string, color: string, emoji: string, customImage?: string) => void
   onClose: () => void
 }
 
 export function EditAccountModal({ account, onSave, onClose }: Props) {
   useModal()
-  const [name,  setName]  = useState(account.name)
-  const [color, setColor] = useState(account.color)
-  const [emoji, setEmoji] = useState(account.emoji || '')
+  const [name,        setName]        = useState(account.name)
+  const [color,       setColor]       = useState(account.color)
+  const [emoji,       setEmoji]       = useState(account.emoji || '')
+  const [customImage, setCustomImage] = useState<string | undefined>(account.customImage)
+  const [uploading,   setUploading]   = useState(false)
+  const [error,       setError]       = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const submit = () => {
     if (!name.trim()) return
-    onSave(account.id, name.trim(), color, emoji)
+    onSave(account.id, name.trim(), color, emoji, customImage)
     onClose()
   }
 
-  const preview = emoji || name.slice(0, 2).toUpperCase()
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setError('Nur Bilddateien erlaubt (PNG, JPG, GIF, WebP)')
+      return
+    }
+
+    setError('')
+    setUploading(true)
+    try {
+      const base64 = await processImageFile(file)
+      setCustomImage(base64)
+      setEmoji('')
+    } catch {
+      setError('Bild konnte nicht verarbeitet werden')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removeCustomImage = () => {
+    setCustomImage(undefined)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const hasImage = !!customImage
+  const hasEmoji = !!emoji && !hasImage
+  const preview  = hasImage ? null : (emoji || name.slice(0, 2).toUpperCase())
 
   return (
     <div
@@ -64,18 +99,20 @@ export function EditAccountModal({ account, onSave, onClose }: Props) {
         }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Header mit Vorschau */}
+        {/* Header mit Live-Vorschau */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
           <div style={{
             width: '56px', height: '56px', borderRadius: '16px',
-            background: color,
+            background: color, overflow: 'hidden', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: emoji ? '26px' : '18px',
+            fontSize: hasEmoji ? '26px' : '18px',
             fontWeight: '700', color: '#fff',
             boxShadow: `0 0 0 3px ${color}44`,
-            flexShrink: 0,
           }}>
-            {preview}
+            {hasImage
+              ? <img src={customImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : preview
+            }
           </div>
           <div>
             <div style={{ color: '#e9edef', fontSize: '16px', fontWeight: '600' }}>
@@ -107,27 +144,75 @@ export function EditAccountModal({ account, onSave, onClose }: Props) {
 
         {/* Farbe */}
         <label style={{ color: '#8696a0', fontSize: '12px', display: 'block', marginBottom: '8px' }}>
-          Farbe
+          Hintergrundfarbe
         </label>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
           {COLORS.map(c => (
-            <div
-              key={c}
-              onClick={() => setColor(c)}
-              style={{
-                width: '28px', height: '28px', borderRadius: '50%',
-                background: c, cursor: 'pointer',
-                boxShadow: color === c ? `0 0 0 3px #fff, 0 0 0 5px ${c}` : 'none',
-                transition: 'box-shadow 0.15s',
-              }}
-            />
+            <div key={c} onClick={() => setColor(c)} style={{
+              width: '28px', height: '28px', borderRadius: '50%',
+              background: c, cursor: 'pointer',
+              boxShadow: color === c ? `0 0 0 3px #fff, 0 0 0 5px ${c}` : 'none',
+              transition: 'box-shadow 0.15s',
+            }} />
           ))}
         </div>
 
-        {/* Emoji Galerie */}
+        {/* Custom Image Upload */}
         <label style={{ color: '#8696a0', fontSize: '12px', display: 'block', marginBottom: '8px' }}>
-          Icon (optional)
-          {emoji && (
+          Eigenes Bild (max 512px)
+          {customImage && (
+            <span
+              onClick={removeCustomImage}
+              style={{ marginLeft: '8px', color: '#ff6b6b', cursor: 'pointer', fontSize: '11px' }}
+            >
+              Entfernen
+            </span>
+          )}
+        </label>
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            width: '100%', padding: '12px',
+            background: '#2a3942', border: `1px dashed ${customImage ? '#25d366' : '#3b4a54'}`,
+            borderRadius: '8px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '10px',
+            marginBottom: '16px', transition: 'border-color 0.15s',
+          }}
+        >
+          {customImage ? (
+            <>
+              <img src={customImage} style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover' }} />
+              <span style={{ color: '#25d366', fontSize: '13px' }}>Bild hochgeladen — klicken zum Ändern</span>
+            </>
+          ) : (
+            <>
+              <span style={{ fontSize: '20px' }}>{'\u{1F5BC}\u{FE0F}'}</span>
+              <span style={{ color: '#8696a0', fontSize: '13px' }}>
+                {uploading ? 'Wird verarbeitet...' : 'PNG, JPG, GIF, WebP — klicken zum Auswählen'}
+              </span>
+            </>
+          )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          style={{ display: 'none' }}
+        />
+        {error && (
+          <div style={{ color: '#ff6b6b', fontSize: '12px', marginBottom: '12px' }}>
+            {error}
+          </div>
+        )}
+
+        {/* Emoji Galerie — deaktiviert wenn Custom Image aktiv */}
+        <label style={{
+          color: customImage ? '#4a5568' : '#8696a0',
+          fontSize: '12px', display: 'block', marginBottom: '8px',
+        }}>
+          Oder Emoji wählen {customImage ? '(deaktiviert — Bild aktiv)' : ''}
+          {emoji && !customImage && (
             <span
               onClick={() => setEmoji('')}
               style={{ marginLeft: '8px', color: '#ff6b6b', cursor: 'pointer', fontSize: '11px' }}
@@ -141,20 +226,18 @@ export function EditAccountModal({ account, onSave, onClose }: Props) {
           gap: '4px', marginBottom: '24px',
           background: '#2a3942', borderRadius: '10px',
           padding: '10px',
+          opacity: customImage ? 0.4 : 1,
+          pointerEvents: customImage ? 'none' : 'auto',
         }}>
           {EMOJI_GALLERY.map(e => (
-            <div
-              key={e}
-              onClick={() => setEmoji(e === emoji ? '' : e)}
-              style={{
-                width: '36px', height: '36px', borderRadius: '8px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '18px', cursor: 'pointer',
-                background: emoji === e ? color + '44' : 'transparent',
-                border: emoji === e ? `2px solid ${color}` : '2px solid transparent',
-                transition: 'all 0.1s',
-              }}
-            >
+            <div key={e} onClick={() => !customImage && setEmoji(e === emoji ? '' : e)} style={{
+              width: '36px', height: '36px', borderRadius: '8px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '18px', cursor: customImage ? 'default' : 'pointer',
+              background: emoji === e && !customImage ? `${color}44` : 'transparent',
+              border: emoji === e && !customImage ? `2px solid ${color}` : '2px solid transparent',
+              transition: 'all 0.1s',
+            }}>
               {e}
             </div>
           ))}
@@ -162,27 +245,19 @@ export function EditAccountModal({ account, onSave, onClose }: Props) {
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: '8px 16px', borderRadius: '8px', border: 'none',
-              background: '#2a3942', color: '#8696a0',
-              cursor: 'pointer', fontSize: '14px',
-            }}
-          >
+          <button onClick={onClose} style={{
+            padding: '8px 16px', borderRadius: '8px', border: 'none',
+            background: '#2a3942', color: '#8696a0', cursor: 'pointer', fontSize: '14px',
+          }}>
             Abbrechen
           </button>
-          <button
-            onClick={submit}
-            disabled={!name.trim()}
-            style={{
-              padding: '8px 16px', borderRadius: '8px', border: 'none',
-              background: name.trim() ? color : '#1a3a2a',
-              color: name.trim() ? '#fff' : '#8696a0',
-              cursor: name.trim() ? 'pointer' : 'not-allowed',
-              fontSize: '14px', fontWeight: '600',
-            }}
-          >
+          <button onClick={submit} disabled={!name.trim()} style={{
+            padding: '8px 16px', borderRadius: '8px', border: 'none',
+            background: name.trim() ? color : '#1a3a2a',
+            color: name.trim() ? '#fff' : '#8696a0',
+            cursor: name.trim() ? 'pointer' : 'not-allowed',
+            fontSize: '14px', fontWeight: '600',
+          }}>
             Speichern
           </button>
         </div>

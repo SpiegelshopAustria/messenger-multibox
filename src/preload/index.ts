@@ -8,6 +8,7 @@ export type Account = {
   serviceId: string
   url: string
   emoji?: string
+  customImage?: string
 }
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -49,6 +50,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('window:maximizeChange', handler)
     return () => ipcRenderer.removeListener('window:maximizeChange', handler)
   },
+  reorderAccounts: (orderedIds: string[]) =>
+    ipcRenderer.invoke('account:reorder', { orderedIds }),
+  setAccountImage: (id: string, imageBase64: string) =>
+    ipcRenderer.invoke('account:setImage', { id, imageBase64 }),
+  removeAccountImage: (id: string) =>
+    ipcRenderer.invoke('account:removeImage', { id }),
   modalOpen:  () => ipcRenderer.send('modal:open'),
   modalClose: () => ipcRenderer.send('modal:close'),
   platform:       process.platform,

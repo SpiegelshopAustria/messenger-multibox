@@ -63,6 +63,13 @@ export const SERVICES: MessengerService[] = [
     color: '#6264A7',
     emoji: '\u{1F535}',
   },
+  {
+    id: 'instagram',
+    name: 'Instagram',
+    url: 'https://www.instagram.com/direct/inbox/',
+    color: '#E1306C',
+    emoji: '\u{1F4F8}',
+  },
 ]
 
 export function getServiceById(id: string): MessengerService | undefined {

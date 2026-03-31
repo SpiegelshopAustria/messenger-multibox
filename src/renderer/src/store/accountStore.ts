@@ -8,6 +8,7 @@ export interface Account {
   serviceId: string
   url: string
   emoji?: string
+  customImage?: string
 }
 
 interface AccountStore {
@@ -20,6 +21,7 @@ interface AccountStore {
   addAccount:   (account: Account) => void
   removeAccount:(id: string) => void
   updateAccount: (id: string, changes: Partial<Account>) => void
+  reorderAccounts: (fromIndex: number, toIndex: number) => void
   statuses:  Record<string, string>
   setStatus: (id: string, status: string) => void
 }
@@ -38,5 +40,13 @@ export const useAccountStore = create<AccountStore>((set) => ({
   updateAccount: (id, changes) => set((s) => ({
     accounts: s.accounts.map(a => a.id === id ? { ...a, ...changes } : a)
   })),
+  reorderAccounts: (fromIndex, toIndex) =>
+    set(s => {
+      const arr = [...s.accounts].sort((a, b) => a.order - b.order)
+      const [moved] = arr.splice(fromIndex, 1)
+      arr.splice(toIndex, 0, moved)
+      const reordered = arr.map((a, i) => ({ ...a, order: i }))
+      return { accounts: reordered }
+    }),
   setStatus: (id, status) => set((s) => ({ statuses: { ...s.statuses, [id]: status } })),
 }))

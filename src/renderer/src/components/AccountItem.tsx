@@ -2,23 +2,25 @@ import React, { useState } from 'react'
 import { ContextMenu, ContextMenuItem } from './ContextMenu'
 
 interface Props {
-  id:        string
-  name:      string
-  color:     string
-  emoji?:    string
-  isActive:  boolean
-  badge:     number
-  status?:   string
-  onClick:   () => void
-  onRemove:  () => void
-  onEdit:    () => void
+  id:           string
+  name:         string
+  color:        string
+  emoji?:       string
+  customImage?: string
+  isActive:     boolean
+  badge:        number
+  status?:      string
+  onClick:      () => void
+  onRemove:     () => void
+  onEdit:       () => void
 }
 
-export function AccountItem({ name, color, emoji, isActive, badge, status, onClick, onRemove, onEdit }: Props) {
+export function AccountItem({ name, color, emoji, customImage, isActive, badge, status, onClick, onRemove, onEdit }: Props) {
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null)
 
-  const display = emoji || name.slice(0, 2).toUpperCase()
-  const isEmoji = !!emoji
+  const hasImage = !!customImage
+  const display  = hasImage ? null : (emoji || name.slice(0, 2).toUpperCase())
+  const isEmoji  = !hasImage && !!emoji
 
   const menuItems: ContextMenuItem[] = [
     {
@@ -63,16 +65,23 @@ export function AccountItem({ name, color, emoji, isActive, badge, status, onCli
         <div style={{
           width: '44px', height: '44px',
           borderRadius: isActive ? '14px' : '50%',
-          background: color,
+          background: color, overflow: 'hidden',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: isEmoji ? '22px' : '14px',
-          fontWeight: isEmoji ? '400' : '700',
+          fontWeight: '700',
           color: '#fff',
           transition: 'border-radius 0.2s ease',
           boxShadow: isActive ? `0 0 0 2px ${color}` : 'none',
           userSelect: 'none',
         }}>
-          {display}
+          {hasImage
+            ? <img
+                src={customImage}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                alt={name}
+              />
+            : display
+          }
         </div>
 
         {/* Unread badge */}
